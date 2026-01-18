@@ -1,0 +1,1035 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>超完整版狼人殺【25角色｜繁體中文｜規則全齊】</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: '微軟正黑體', sans-serif; }
+        body { background: #1a1a1a; color: #f5f5f5; line-height: 1.6; padding: 15px; }
+        .game-container { max-width: 900px; margin: 0 auto; background: #2d2d2d; border-radius: 12px; padding: 20px; border: 2px solid #555; }
+        h1, h2, h3 { text-align: center; color: #ff9500; margin: 10px 0; }
+        h1 { border-bottom: 3px solid #ff9500; padding-bottom: 10px; }
+        .log-box { background: #121212; min-height: 450px; max-height: 450px; overflow-y: auto; padding: 15px; border-radius: 8px; margin: 15px 0; border: 1px solid #444; white-space: pre-line; font-size: 15px; }
+        .input-box { display: flex; gap: 10px; align-items: center; justify-content: center; margin: 15px 0; }
+        #gameInput { flex: 1; padding: 12px; border-radius: 6px; border: none; background: #3d3d3d; color: #fff; font-size: 16px; outline: none; }
+        #gameInput:focus { border: 2px solid #ff9500; }
+        #submitBtn { padding: 12px 25px; border-radius: 6px; border: none; background: #ff9500; color: #1a1a1a; font-weight: bold; font-size: 16px; cursor: pointer; }
+        #submitBtn:hover { background: #e08800; }
+        .good { color: #4cd964; }
+        .wolf { color: #ff3b30; }
+        .warn { color: #ffcc00; }
+        .success { color: #00e676; }
+        .danger { color: #ff5252; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #2d2d2d; }
+        ::-webkit-scrollbar-thumb { background: #555; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #777; }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>🐺 狼人殺【超完整版25角色｜繁體中文】🐺</h1>
+        <h3>規則全齊｜手動設定｜重開分配｜日夜循環</h3>
+        <div class="log-box" id="gameLog"></div>
+        <div class="input-box">
+            <input type="text" id="gameInput" placeholder="請輸入數字按鈕確認，輸入內容後按確認鍵...">
+            <button id="submitBtn">確 認</button>
+        </div>
+    </div>
+
+    <script>
+        // ========== 狼人殺角色定義【完整25角色｜繁體中文｜含陣營+技能說明｜規則100%對齊】 ==========
+        const ROLES = {
+            1: {"name": "平民", "team": "好人陣營", "skill": "無特殊技能，白天投票放逐狼人"},
+            2: {"name": "女巫", "team": "好人陣營", "skill": "解藥x1：救狼刀目標，第一晚不能自救；毒藥x1：毒殺玩家並封印技能，兩藥不可同夜使用"},
+            3: {"name": "預言家", "team": "好人陣營", "skill": "每晚查驗1名存活玩家的身份（好人/狼人）"},
+            4: {"name": "獵人", "team": "好人陣營", "skill": "被刀/被投可開槍帶人，被毒則失效"},
+            5: {"name": "守衛", "team": "好人陣營", "skill": "每晚守護1名玩家免於狼殺，不可連續兩晚守同1人"},
+            6: {"name": "白痴", "team": "好人陣營", "skill": "被公投出局時翻牌不死，失去投票權"},
+            7: {"name": "騎士", "team": "好人陣營", "skill": "白天發言階段翻牌決鬥1人，對狼人則狼人死亡並入夜；對好人則騎士死亡"},
+            8: {"name": "通靈師", "team": "好人陣營", "skill": "每晚查驗1名存活玩家的真實身份"},
+            9: {"name": "獵魔人", "team": "好人陣營", "skill": "第二晚開始狩獵1人，獵狼人則目標死；獵好人則自身死，女巫毒藥無效"},
+            10: {"name": "魔術師", "team": "好人陣營", "skill": "每晚交換2人號碼牌，當晚技能互換；每號僅能交換1次，天亮復原"},
+            11: {"name": "攝夢人", "team": "好人陣營", "skill": "每晚必須催眠1人免傷害，連續兩晚催眠同1人則其死亡；自身死亡則目標殉情，無法免疫殉情/狩獵失敗死亡"},
+            12: {"name": "守墓人", "team": "好人陣營", "skill": "每晚得知前一天被公投出局玩家的陣營"},
+            13: {"name": "愛神", "team": "好人陣營", "skill": "每晚可連結2人為情侶，一方死亡則另一方殉情並封印技能，每兩晚必須連結一次"},
+            14: {"name": "狐狸", "team": "好人陣營", "skill": "所有驗身份角色查驗皆顯示好人，夜裡與狼人一起睜眼，屬於好人陣營"},
+            15: {"name": "小狼", "team": "狼人陣營", "skill": "每晚參與刀人，白天可自爆強制入夜"},
+            16: {"name": "狼王", "team": "狼人陣營", "skill": "死亡/自爆時可咬死1位玩家【無限制】"},
+            17: {"name": "狼美人", "team": "狼人陣營", "skill": "每晚魅惑1人，自身死亡則目標殉情；不能自刀、不能自爆"},
+            18: {"name": "雪狼", "team": "狼人陣營", "skill": "預言家/守墓人查驗皆顯示好人，隱藏狼人身份"},
+            19: {"name": "白狼王", "team": "狼人陣營", "skill": "僅自爆時可咬死1位玩家，被殺/被投無法發動"},
+            20: {"name": "黑狼王", "team": "狼人陣營", "skill": "被投票/被殺死亡時可咬死1位玩家，自爆無法發動"},
+            21: {"name": "惡靈騎士", "team": "狼人陣營", "skill": "夜晚不會死亡，被守衛外神職指定則反殺神職；不能自刀"},
+            22: {"name": "石像鬼", "team": "狼人陣營", "skill": "單獨睜眼驗身份，所有狼人滅絕後可單獨刀人，不能自爆"},
+            23: {"name": "血月使者", "team": "狼人陣營", "skill": "自爆後封印當晚好人技能，最後狼人時被投不死"},
+            24: {"name": "狼兄", "team": "狼人陣營", "skill": "自身死亡後狼弟覺醒獲得刀人能力；不能自刀"},
+            25: {"name": "狼弟", "team": "狼人陣營", "skill": "狼兄死前預驗為好人，覺醒後先單獨刀人再跟狼人集體刀人，狼人滅絕後可單獨刀人"}
+        };
+        const ROLE_LIST = Object.values(ROLES).map(v => v.name);
+
+        // ========== 遊戲核心類 ==========
+        class WerewolfGame {
+            constructor() {
+                this.player_num = 0;
+                this.custom_role_list = [];
+                this.players = {};
+                this.wolfs = [];
+                this.good_guys = [];
+                this.day = 1;
+                this.witch_antidote = true;
+                this.witch_poison = true;
+                this.guard_last_target = -1;
+                this.magician_swapped = [];
+                this.dreamer_last_target = -1;
+                this.grave_last_vote_role = "";
+                this.cupid_couple = [];
+                this.game_over = false;
+                this.winner = "";
+                this.wolf_bro_awake = false;
+                this.first_game = true;
+                this.evil_knight_counter = true;
+                this.wolf_young_kill = null;
+                this.magician_swap_pair = [];
+
+                // DOM元素
+                this.logEl = document.getElementById('gameLog');
+                this.inputEl = document.getElementById('gameInput');
+                this.btnEl = document.getElementById('submitBtn');
+                this.awaitInput = false;
+                this.inputCallback = null;
+
+                // 綁定按鈕事件
+                this.btnEl.addEventListener('click', () => this.handleInput());
+                this.inputEl.addEventListener('keypress', (e) => e.key === 'Enter' && this.handleInput());
+            }
+
+            // 列印日誌到畫面
+            log(text, className = "") {
+                const div = document.createElement('div');
+                div.className = className;
+                div.textContent = text;
+                this.logEl.appendChild(div);
+                this.logEl.scrollTop = this.logEl.scrollHeight;
+            }
+
+            // 等待玩家輸入
+            async waitForInput() {
+                return new Promise(resolve => {
+                    this.awaitInput = true;
+                    this.inputCallback = resolve;
+                    this.inputEl.focus();
+                });
+            }
+
+            // 處理玩家輸入
+            handleInput() {
+                if (!this.awaitInput || !this.inputCallback) return;
+                const val = this.inputEl.value.trim();
+                this.inputEl.value = "";
+                this.awaitInput = false;
+                this.inputCallback(val);
+            }
+
+            // 存活玩家篩選
+            get_alive_players() {
+                return Object.keys(this.players).map(Number).filter(p => this.players[p].alive);
+            }
+
+            // 存活狼人篩選
+            get_alive_wolfs() {
+                return this.wolfs.filter(w => this.players[w].alive);
+            }
+
+            // 存活好人篩選
+            get_alive_good() {
+                return this.good_guys.filter(g => this.players[g].alive);
+            }
+
+            // 透過角色名獲取角色ID
+            getRoleId(roleName) {
+                return Object.keys(ROLES).find(k => ROLES[k].name === roleName);
+            }
+
+            // 透過角色名獲取陣營
+            getRoleTeam(roleName) {
+                return ROLES[this.getRoleId(roleName)].team;
+            }
+
+            // ========== ✅ 第一次開局：手動設定本局的角色清單 (只執行1次，重開角色不變) ✅
+            async manual_role_setup() {
+                this.log("======= 🐺 狼人殺【手動指定角色模式】🐺 =======");
+                this.log("【規則】完全手動設定本局角色清單，【第N個輸入的角色 = N號玩家】，固定順序永不亂序！");
+                this.log("\n======= 📜 所有可選擇的角色對應表【好人/狼人清晰標註】 =======");
+                for (let idx in ROLES) {
+                    const info = ROLES[idx];
+                    const team_tag = info.team === "好人陣營" ? "🟢好人" : "🔴狼人";
+                    this.log(`${idx}. ${team_tag} ${info.name} - 技能：${info.skill}`);
+                }
+
+                // 第一步：手動設定本局玩家總人數
+                while (true) {
+                    this.log("\n請輸入本局的玩家總人數 (數字即可，無限制)：");
+                    const input = await this.waitForInput();
+                    const num = parseInt(input);
+                    if (!isNaN(num) && num >= 1) {
+                        this.player_num = num;
+                        this.log(`✅ 設定完成！本局共 ${this.player_num} 位玩家，編號：1 ~ ${this.player_num}`, "success");
+                        break;
+                    } else {
+                        this.log("人數必須大於等於1！請重新輸入！", "danger");
+                    }
+                }
+
+                // 第二步：逐個設定本局的角色清單
+                this.log("\n======= 開始手動指定本局角色清單 =======");
+                this.log(`【重點規則】你輸入的第1個角色 → 1號玩家，第2個角色 → 2號玩家，依此類推！`);
+                const temp_role_list = [];
+                for (let player_id = 1; player_id <= this.player_num; player_id++) {
+                    while (true) {
+                        this.log(`\n請設定【${player_id}號玩家】的角色類型 (輸入角色數字)：`);
+                        const input = await this.waitForInput();
+                        const role_idx = parseInt(input);
+                        if (!isNaN(role_idx) && role_idx >=1 && role_idx <= Object.keys(ROLES).length) {
+                            const role_name = ROLES[role_idx].name;
+                            const team_tag = ROLES[role_idx].team === "好人陣營" ? "🟢好人" : "🔴狼人";
+                            temp_role_list.push(role_name);
+                            this.log(`✅ ${player_id}號玩家 確定角色：${team_tag}【${role_name}】`, "success");
+                            break;
+                        } else {
+                            this.log(`輸入錯誤！請輸入 1 ~ ${Object.keys(ROLES).length} 之間的數字！`, "danger");
+                        }
+                    }
+                }
+
+                // 驗證配置合理性
+                if (temp_role_list.length <4) {
+                    this.log("總人數不能少於4人！請重新配置！", "danger");
+                    await this.manual_role_setup();
+                    return;
+                }
+
+                this.custom_role_list = temp_role_list;
+                this.log(`\n✅ 角色清單設定完成！本局玩家角色對應表：`, "success");
+                for (let i=0; i<this.custom_role_list.length; i++) {
+                    this.log(`   ${i+1}號玩家 → ${this.custom_role_list[i]}`);
+                }
+                await this.sleep(3000);
+            }
+
+            // ========== ✅ 核心新增：重開遊戲專用 - 手動自選角色分配 ✅
+            async manual_assign_roles() {
+                this.log("\n======= 🎮 重新開局 · 手動分配角色 🎮 =======");
+                this.log(`【規則】只能選擇本局固定角色清單內的角色，數量不變，可自由分配給任意玩家！`);
+                this.log(`本局固定角色清單：${this.custom_role_list}`);
+                this.log(`本局玩家編號：${Array.from({length:this.player_num}, (_,i)=>i+1)}`);
+                await this.sleep(1000);
+
+                const assign_role_pool = [...this.custom_role_list];
+                const assign_players = {};
+
+                for (let player_id=1; player_id<=this.player_num; player_id++) {
+                    while (true) {
+                        this.log(`\n📌 當前待分配角色剩餘：${assign_role_pool}`);
+                        this.log(`👉 請為【${player_id}號玩家】分配角色：`);
+                        assign_role_pool.forEach((role, idx) => {
+                            const team_tag = this.getRoleTeam(role) === "好人陣營" ? "🟢好人" : "🔴狼人";
+                            this.log(`   ${idx+1}. ${team_tag} ${role}`);
+                        });
+                        const input = await this.waitForInput();
+                        const select_idx = parseInt(input);
+                        if (!isNaN(select_idx) && select_idx >=1 && select_idx <= assign_role_pool.length) {
+                            const selected_role = assign_role_pool.splice(select_idx-1,1)[0];
+                            assign_players[player_id] = selected_role;
+                            const team_tag = this.getRoleTeam(selected_role) === "好人陣營" ? "🟢好人" : "🔴狼人";
+                            this.log(`✅ ${player_id}號玩家 分配到角色：${team_tag}【${selected_role}】`, "success");
+                            break;
+                        } else {
+                            this.log(`輸入錯誤！請輸入 1-${assign_role_pool.length} 之間的數字！`, "danger");
+                        }
+                    }
+                }
+                return assign_players;
+            }
+
+            // ========== ✅ 初始化遊戲 (✅核心修改：第一次固定順序分配，重開手動分配 + 狀態全重置) ✅
+            async init_game() {
+                // 重置所有遊戲狀態
+                this.players = {};
+                this.wolfs = [];
+                this.good_guys = [];
+                this.day = 1;
+                this.witch_antidote = true;
+                this.witch_poison = true;
+                this.guard_last_target = -1;
+                this.magician_swapped = [];
+                this.dreamer_last_target = -1;
+                this.grave_last_vote_role = "";
+                this.cupid_couple = [];
+                this.game_over = false;
+                this.winner = "";
+                this.wolf_bro_awake = false;
+                this.evil_knight_counter = true;
+                this.wolf_young_kill = null;
+                this.magician_swap_pair = [];
+
+                this.log("\n======= 🐺 歡迎來到超完整版狼人殺遊戲 🐺 =======");
+                this.log(`天黑請閉眼！遊戲即將開始！當前為第${this.day}天`);
+                this.log(`【遊戲規則】日夜無限循環，直到一方陣營全滅為止！`);
+                this.log(`【快捷規則】所有技能輸0跳過、投票輸0觸發狼人自爆、狼人可刀自己人`);
+                this.log(`【陣營規則】🟢好人陣營：屠滅所有狼人獲勝 | 🔴狼人陣營：屠滅所有好人獲勝`);
+                await this.sleep(2000);
+
+                // 第一次開局：固定順序分配
+                if (this.first_game) {
+                    const temp_role = [...this.custom_role_list];
+                    for (let i=1; i<=this.player_num; i++) {
+                        const role = temp_role[i-1];
+                        this.players[i] = { role, alive: true, can_vote: true, skill_lock: false };
+                    }
+                    this.first_game = false;
+                } else {
+                    // 重開遊戲：手動分配
+                    const assign_players = await this.manual_assign_roles();
+                    for (let pid in assign_players) {
+                        const player_id = parseInt(pid);
+                        this.players[player_id] = { role: assign_players[player_id], alive: true, can_vote: true, skill_lock: false };
+                    }
+                }
+
+                // 重新分陣營
+                for (let p_id in this.players) {
+                    const pid = parseInt(p_id);
+                    const role = this.players[pid].role;
+                    if (this.getRoleTeam(role) === "狼人陣營") {
+                        this.wolfs.push(pid);
+                    } else {
+                        this.good_guys.push(pid);
+                    }
+                }
+
+                // 陣營公示
+                this.log(`\n📊 本局陣營分配：`);
+                this.log(`🟢 好人陣營玩家編號：${this.good_guys}`, "good");
+                this.log(`🔴 狼人陣營玩家編號：${this.wolfs}`, "wolf");
+                await this.sleep(2000);
+            }
+
+            // ========== ✅ 夜晚行動階段 ==========
+            async night_action() {
+                if (this.game_over) return;
+                this.log(`\n======= 第${this.day}天 · 夜晚 =======`);
+                const alive_players = this.get_alive_players();
+                const alive_wolfs = this.get_alive_wolfs();
+                const alive_good = this.get_alive_good();
+                let kill_target = null;
+                const real_dead = [];
+                let wolf_bite = null;
+                const anti_kill_list = [];
+                let dreamer_dead = false;
+
+                // 狼弟覺醒判定
+                const wolf_bro = Object.keys(this.players).map(Number).filter(p => this.players[p].role === "狼兄" && !this.players[p].alive);
+                const wolf_young = Object.keys(this.players).map(Number).filter(p => this.players[p].role === "狼弟" && this.players[p].alive);
+                if (wolf_bro.length && wolf_young.length && !this.wolf_bro_awake) {
+                    this.wolf_bro_awake = true;
+                    this.log(`\n⚠️  【狼弟覺醒規則】狼兄已死亡，狼弟正式覺醒！預驗好人效果消失！`, "warn");
+                    this.log(`⚠️  狼弟覺醒後 → 夜晚優先所有狼人，先單獨刀1人，隨後加入狼人集體刀人！`, "warn");
+                    this.log(`⚠️  狼弟額外規則：狼人團滅後，狼弟可單獨執行刀人行動！`, "warn");
+                    await this.sleep(2000);
+                }
+
+                // 狐狸規則
+                const fox = Object.keys(this.players).map(Number).filter(p => this.players[p].role === "狐狸" && this.players[p].alive);
+                if (fox.length && alive_wolfs.length) {
+                    this.log(`\n🦊 【狐狸規則】${fox[0]}號狐狸 屬於好人，但今夜與狼人一起睜眼！`);
+                    await this.sleep(1000);
+                }
+
+                // 狼弟單獨刀人
+                if (this.wolf_bro_awake && wolf_young.length) {
+                    const wy_id = wolf_young[0];
+                    this.log(`\n🐺 狼弟(${wy_id}號)單獨睜眼！覺醒後優先刀人，輸0跳過本次單獨刀人`);
+                    while (true) {
+                        const input = await this.waitForInput();
+                        const wy_kill = parseInt(input);
+                        if (wy_kill === 0) {
+                            this.log("✅ 狼弟選擇跳過單獨刀人，等待狼人集體行動", "success");
+                            this.wolf_young_kill = null;
+                            break;
+                        }
+                        if (alive_players.includes(wy_kill)) {
+                            this.wolf_young_kill = wy_kill;
+                            this.log(`✅ 狼弟單獨刀殺 ${wy_kill}號玩家！`, "success");
+                            break;
+                        }
+                        this.log("輸入錯誤！請選擇存活的玩家編號！", "danger");
+                    }
+                    await this.sleep(1000);
+                }
+
+                // 1. 魔術師行動
+                const magician = Object.keys(this.players).map(Number).filter(p => this.players[p].role === "魔術師" && this.players[p].alive && !this.players[p].skill_lock);
+                if (magician.length) {
+                    this.log(`\n🪄 魔術師(${magician[0]}號)睜眼！可交換2人號碼牌【僅當晚有效】，輸0跳過，已交換:${this.magician_swapped}`);
+                    while (true) {
+                        const input = await this.waitForInput();
+                        if (input === "0") {
+                            this.log("✅ 魔術師選擇跳過技能，不交換任何人", "success");
+                            break;
+                        }
+                        const [swap1, swap2] = input.split(" ").map(Number);
+                        if (alive_players.includes(swap1) && alive_players.includes(swap2) && swap1 !== swap2) {
+                            if (!this.magician_swapped.includes(swap1) && !this.magician_swapped.includes(swap2)) {
+                                this.magician_swapped.push(swap1, swap2);
+                                this.magician_swap_pair = [swap1, swap2];
+                                [this.players[swap1].role, this.players[swap2].role] = [this.players[swap2].role, this.players[swap1].role];
+                                this.log(`✅ 成功交換 ${swap1}號 與 ${swap2}號 身分與技能！【效果僅當晚有效，天亮自動復原】`, "success");
+                                break;
+                            } else {
+                                this.log("其中一個號碼已被交換過！每號僅能交換1次", "danger");
+                            }
+                        } else {
+                            this.log("輸入錯誤！請選擇存活且不同的玩家", "danger");
+                        }
+                    }
+                    await this.sleep(1000);
+                }
+
+                // 2. 狼人集體刀人
+                if (alive_wolfs.length >=1) {
+                    this.log(`\n🐺 狼人陣營睜眼！存活狼人：${alive_wolfs}，存活玩家：${alive_players}`);
+                    this.log(`【規則】狼人可刀任何人(包含自己/狼人同伴/好人，完全無限制)，輸0=不刀人跳過`);
+                    while (true) {
+                        const input = await this.waitForInput();
+                        kill_target = parseInt(input);
+                        if (kill_target === 0) {
+                            this.log("✅ 狼人選擇跳過刀人，平安夜", "success");
+                            wolf_bite = null;
+                            break;
+                        }
+                        if (alive_players.includes(kill_target)) {
+                            if (this.players[kill_target].role === "惡靈騎士") {
+                                this.log("❌ 惡靈騎士規則：禁止自刀！請重新選擇目標", "danger");
+                                continue;
+                            }
+                            wolf_bite = kill_target;
+                            this.log(`✅ 狼人選擇擊殺 ${kill_target}號玩家！`, "success");
+                            break;
+                        }
+                        this.log("輸入錯誤！請選擇存活的玩家編號！", "danger");
+                    }
+                }
+
+                // 3. 守衛行動
+                const guard = Object.keys(this.players).map(Number).filter(p => this.players[p].role === "守衛" && this.players[p].alive && !this.players[p].skill_lock);
+                let guard_target = -1;
+                if (guard.length) {
+                    this.log(`\n🛡️  守衛(${guard[0]}號)睜眼！上一晚守護:${this.guard_last_target} (不可連守同一人)，輸0跳過技能`);
+                    while (true) {
+                        const input = await this.waitForInput();
+                        guard_target = parseInt(input);
+                        if (guard_target === 0) {
+                            this.log("✅ 守衛選擇跳過技能，不守護任何人", "success");
+                            guard_target = -1;
+                            break;
+                        }
+                        if (alive_players.includes(guard_target) && guard_target !== this.guard_last_target) {
+                            this.guard_last_target = guard_target;
+                            this.log(`✅ 守衛選擇守護 ${guard_target}號 玩家`, "success");
+                            break;
+                        }
+                        this.log(`不可守護上一晚目標(${this.guard_last_target})或死亡玩家！`, "danger");
+                    }
+                    await this.sleep(1000);
+                }
+
+                // 4. 攝夢人行動
+                const dreamer = Object.keys(this.players).map(Number).filter(p => this.players[p].role === "攝夢人" && this.players[p].alive && !this.players[p].skill_lock);
+                let dream_target = -1;
+                if (dreamer.length) {
+                    const dr_id = dreamer[0];
+                    this.log(`\n💤 攝夢人(${dr_id}號)睜眼！【強制規則】必須催眠1名非自己的存活玩家，無跳過選項！`);
+                    this.log(`上一晚催眠目標：${this.dreamer_last_target} | 連續催眠同一人會直接死亡！`);
+                    this.log(`【豁免規則】催眠目標免疫夜傷害，但無法免疫殉情、狩獵失敗自殺！`);
+                    while (true) {
+                        const input = await this.waitForInput();
+                        dream_target = parseInt(input);
+                        if (alive_players.includes(dream_target) && dream_target !== dr_id) {
+                            if (dream_target === this.dreamer_last_target) {
+                                this.log(`⚠️  攝夢人規則：${dream_target}號被連續兩晚催眠！直接死亡+技能封印！`, "warn");
+                                real_dead.push(dream_target);
+                                this.players[dream_target].skill_lock = true;
+                            }
+                            this.dreamer_last_target = dream_target;
+                            this.log(`✅ 催眠 ${dream_target}號，目標免疫夜間所有外來傷害！`, "success");
+                            break;
+                        }
+                        this.log("請選擇存活且非自己的玩家！無跳過選項！", "danger");
+                    }
+                    await this.sleep(1000);
+                }
+
+                // 5. 預言家查驗
+                const prophet = Object.keys(this.players).map(Number).filter(p => this.players[p].role === "預言家" && this.players[p].alive && !this.players[p].skill_lock);
+                if (prophet.length) {
+                    this.log(`\n🔮 預言家(${prophet[0]}號)睜眼！存活玩家：${alive_players}，輸0跳過技能`);
+                    while (true) {
+                        const input = await this.waitForInput();
+                        const check_target = parseInt(input);
+                        if (check_target === 0) {
+                            this.log("✅ 預言家選擇跳過技能，不查驗任何人", "success");
+                            break;
+                        }
+                        if (alive_players.includes(check_target)) {
+                            const tar_role = this.players[check_target].role;
+                            let res = "";
+                            if (["雪狼", "狐狸"].includes(tar_role) || (tar_role === "狼弟" && !this.wolf_bro_awake)) {
+                                res = "好人✅";
+                            } else if (parseInt(this.getRoleId(tar_role)) <=14) {
+                                res = "好人✅";
+                            } else {
+                                res = "壞人❌";
+                                if (tar_role === "惡靈騎士" && this.evil_knight_counter) anti_kill_list.push(prophet[0]);
+                            }
+                            this.log(`✅ 查驗結果：${check_target}號玩家是 ${res}`, "success");
+                            break;
+                        }
+                    }
+                }
+                await this.sleep(1000);
+
+                // 6. 通靈師查驗
+                const medium = Object.keys(this.players).map(Number).filter(p => this.players[p].role === "通靈師" && this.players[p].alive && !this.players[p].skill_lock);
+                if (medium.length) {
+                    this.log(`\n🔮 通靈師(${medium[0]}號)睜眼！存活玩家：${alive_players}，輸0跳過技能`);
+                    while (true) {
+                        const input = await this.waitForInput();
+                        const check_target = parseInt(input);
+                        if (check_target ===0) {
+                            this.log("✅ 通靈師選擇跳過技能，不查驗任何人", "success");
+                            break;
+                        }
+                        if (alive_players.includes(check_target)) {
+                            this.log(`✅ 查驗結果：${check_target}號玩家真實身分是【${this.players[check_target].role}】`, "success");
+                            break;
+                        }
+                    }
+                }
+                await this.sleep(1000);
+
+                // 7. 女巫完整規則
+                const witch = Object.keys(this.players).map(Number).filter(p => this.players[p].role === "女巫" && this.players[p].alive && !this.players[p].skill_lock);
+                if (witch.length && wolf_bite) {
+                    const witch_id = witch[0];
+                    this.log(`\n🧪 女巫(${witch_id}號)睜眼！今夜狼人刀殺：${wolf_bite}號`);
+                    this.log(`狀態：解藥${this.witch_antidote ? '可用' : '用完'} | 毒藥${this.witch_poison ? '可用' : '用完'}`);
+                    this.log("請選擇行動：1-救他  2-毒別人  0-跳過不用藥 (輸入數字)：");
+                    let choice = "";
+                    while (true) {
+                        choice = await this.waitForInput();
+                        if (["0","1","2"].includes(choice)) break;
+                        this.log("輸入錯誤！請輸入0/1/2！", "danger");
+                    }
+
+                    if (choice === "0") {
+                        this.log("✅ 女巫選擇跳過技能，都不用藥", "success");
+                    } else if (choice === "1" && this.witch_antidote) {
+                        if (this.day ===1 && wolf_bite === witch_id) {
+                            this.log("❌ 女巫規則：第一晚絕對不能自救！解藥使用失敗", "danger");
+                        } else if (wolf_bite === guard_target) {
+                            this.log("❌ 核心規則：守衛守護 + 女巫解藥 同時生效 → 目標依然死亡！", "danger");
+                        } else {
+                            this.witch_antidote = false;
+                            wolf_bite = null;
+                            this.log("✅ 使用解藥，目標被救活！", "success");
+                        }
+                    } else if (choice === "2" && this.witch_poison) {
+                        this.witch_poison = false;
+                        this.log(`\n請選擇毒殺目標 (存活玩家：${alive_players})，輸0跳過毒藥：`);
+                        while (true) {
+                            const input = await this.waitForInput();
+                            const poison_tar = parseInt(input);
+                            if (poison_tar ===0) {
+                                this.log("✅ 女巫選擇跳過毒藥技能", "success");
+                                break;
+                            }
+                            if (alive_players.includes(poison_tar)) {
+                                if (this.players[poison_tar].role === "獵魔人") {
+                                    this.log("✅ 獵魔人規則：完全免疫女巫所有毒藥！毒殺無效【絕對規則】", "success");
+                                } else {
+                                    this.players[poison_tar].skill_lock = true;
+                                    real_dead.push(poison_tar);
+                                    if (this.players[poison_tar].role === "惡靈騎士" && this.evil_knight_counter) anti_kill_list.push(witch_id);
+                                    this.log(`✅ 使用毒藥，毒殺${poison_tar}號玩家+封印技能！`, "success");
+                                }
+                                break;
+                            }
+                        }
+                    }
+                }
+                await this.sleep(1000);
+
+                // 8. 獵魔人完整規則
+                const hunter_mage = Object.keys(this.players).map(Number).filter(p => this.players[p].role === "獵魔人" && this.players[p].alive && !this.players[p].skill_lock);
+                if (hunter_mage.length && this.day >=2) {
+                    this.log(`\n🏹 獵魔人(${hunter_mage[0]}號)睜眼！第二晚開啟狩獵能力，輸0跳過技能`);
+                    this.log(`【規則】獵狼人=目標死 | 獵好人=自己死 | 完全免疫女巫毒藥`);
+                    while (true) {
+                        const input = await this.waitForInput();
+                        const hunt_tar = parseInt(input);
+                        if (hunt_tar ===0) {
+                            this.log("✅ 獵魔人選擇跳過技能，不狩獵任何人", "success");
+                            break;
+                        }
+                        if (alive_players.includes(hunt_tar)) {
+                            const tar_team = this.getRoleTeam(this.players[hunt_tar].role);
+                            if (tar_team === "狼人陣營") {
+                                real_dead.push(hunt_tar);
+                                this.log(`✅ 狩獵成功！${hunt_tar}號狼人死亡`, "success");
+                            } else {
+                                real_dead.push(hunter_mage[0]);
+                                this.log(`❌ 狩獵規則：狩獵好人 → 獵魔人自身死亡！無法免疫！`, "danger");
+                            }
+                            break;
+                        }
+                    }
+                }
+                await this.sleep(1000);
+
+                // 9. 石像鬼單獨行動
+                const stone_ghost = Object.keys(this.players).map(Number).filter(p => this.players[p].role === "石像鬼" && this.players[p].alive && !this.players[p].skill_lock);
+                if (stone_ghost.length) {
+                    this.log(`\n👻 石像鬼(${stone_ghost[0]}號)單獨睜眼！不與其他狼人碰面，輸0跳過技能`);
+                    const normal_wolf = alive_wolfs.filter(w => this.players[w].role !== "石像鬼");
+                    if (normal_wolf.length ===0) {
+                        this.log("⚠️  石像鬼規則：所有普通狼人已滅絕，石像鬼獲得獨自刀人權！", "warn");
+                        while (true) {
+                            const input = await this.waitForInput();
+                            const ghost_kill = parseInt(input);
+                            if (ghost_kill ===0) {
+                                this.log("✅ 石像鬼選擇跳過技能，不刀任何人", "success");
+                                break;
+                            }
+                            if (alive_players.includes(ghost_kill)) {
+                                wolf_bite = ghost_kill;
+                                this.log(`✅ 石像鬼刀殺 ${ghost_kill}號`, "success");
+                                break;
+                            }
+                        }
+                    } else {
+                        while (true) {
+                            const input = await this.waitForInput();
+                            const check_tar = parseInt(input);
+                            if (check_tar ===0) {
+                                this.log("✅ 石像鬼選擇跳過技能，不查驗任何人", "success");
+                                break;
+                            }
+                            this.log(`✅ 查驗結果：${check_tar}號是【${this.players[check_tar].role}】`, "success");
+                            break;
+                        }
+                    }
+                }
+                await this.sleep(1000);
+
+                // 10. 愛神修正規則
+                const cupid = Object.keys(this.players).map(Number).filter(p => this.players[p].role === "愛神" && this.players[p].alive && !this.players[p].skill_lock);
+                if (cupid.length) {
+                    this.log(`\n💘 愛神(${cupid[0]}號)睜眼！【規則】每晚可連結情侶，每兩晚必須連結一次，無跳過選項！`);
+                    this.log(`【情侶規則】一方死亡，另一方立刻殉情+技能封印！`);
+                    while (true) {
+                        const input = await this.waitForInput();
+                        const [c1, c2] = input.split(" ").map(Number);
+                        if (alive_players.includes(c1) && alive_players.includes(c2) && c1 !== c2) {
+                            this.cupid_couple = [c1, c2];
+                            this.log(`✅ 成功連結 ${c1}號 與 ${c2}號 為情侶！一方死亡則另一方殉情+封印技能！`, "success");
+                            break;
+                        }
+                        this.log("格式錯誤！請輸入兩個存活玩家數字空格分隔，無跳過選項！", "danger");
+                    }
+                }
+                await this.sleep(1000);
+
+                // 惡靈騎士反殺規則執行
+                if (anti_kill_list.length && this.evil_knight_counter) {
+                    const ak_target = anti_kill_list[0];
+                    real_dead.push(ak_target);
+                    this.evil_knight_counter = false;
+                    this.log(`\n⚠️  惡靈騎士反殺規則：被${ak_target}號神職指定，反殺該神職！反殺次數用完！`, "warn");
+                }
+
+                // 處理狼弟單獨刀人結果
+                if (this.wolf_young_kill && alive_players.includes(this.wolf_young_kill)) {
+                    if (this.players[this.wolf_young_kill].role !== "惡靈騎士") {
+                        real_dead.push(this.wolf_young_kill);
+                        this.log(`\n🐺 狼弟單獨刀殺結果：${this.wolf_young_kill}號玩家死亡！`);
+                    }
+                }
+
+                // 狼弟額外規則：狼人團滅後可單獨刀人
+                if (this.wolf_bro_awake && alive_wolfs.filter(w => w !== wolf_young[0]).length ===0 && wolf_young.length) {
+                    this.log(`\n⚠️  狼弟規則：所有狼人已滅絕，狼弟單獨執行刀人權！`, "warn");
+                    while (true) {
+                        const input = await this.waitForInput();
+                        const wy_kill = parseInt(input);
+                        if (wy_kill ===0) break;
+                        if (alive_players.includes(wy_kill)) {
+                            real_dead.push(wy_kill);
+                            this.log(`✅ 狼弟單獨刀殺 ${wy_kill}號玩家！`, "success");
+                            break;
+                        }
+                    }
+                }
+
+                // 處理狼刀最終結果
+                if (wolf_bite) {
+                    if (this.players[wolf_bite].role === "惡靈騎士") {
+                        this.log(`✅ 惡靈騎士規則：夜晚免疫所有傷害！狼刀無效`, "success");
+                    } else if (!real_dead.includes(wolf_bite)) {
+                        real_dead.push(wolf_bite);
+                    }
+                }
+
+                // 守墓人獲得上日投票資訊
+                const grave_keeper = Object.keys(this.players).map(Number).filter(p => this.players[p].role === "守墓人" && this.players[p].alive && !this.players[p].skill_lock);
+                if (grave_keeper.length && this.day>1 && this.grave_last_vote_role) {
+                    this.log(`\n⚰️  守墓人(${grave_keeper[0]}號)睜眼！昨日被投玩家為【${this.grave_last_vote_role}】陣營`);
+                    await this.sleep(1000);
+                }
+
+                // ========== 夜晚死亡處理 ==========
+                this.log("\n☠️  天亮了！昨夜死亡的玩家有：");
+                const death_list = [...new Set(real_dead)];
+                if (dreamer.length && death_list.includes(dreamer[0])) dreamer_dead = true;
+
+                if (death_list.length) {
+                    for (const dead of death_list) {
+                        if (this.players[dead] && this.players[dead].alive && this.players[dead].role !== "惡靈騎士") {
+                            this.players[dead].alive = false;
+                            const dead_role = this.players[dead].role;
+                            const team_tag = this.good_guys.includes(dead) ? "🟢好人" : "🔴狼人";
+                            this.log(`→ ${dead}號玩家 ${team_tag}【${dead_role}】`);
+
+                            // 獵人核心規則
+                            if (dead_role === "獵人" && !this.players[dead].skill_lock) {
+                                this.log(`${dead}號獵人死亡！開槍輸入目標編號，不開輸0：`);
+                                const shoot = await this.waitForInput();
+                                const shootTar = parseInt(shoot);
+                                if (shoot !== "0" && alive_players.includes(shootTar)) {
+                                    this.players[shootTar].alive = false;
+                                    this.log(`✅ 獵人開槍帶走 ${shoot}號！`, "success");
+                                } else {
+                                    this.log("✅ 獵人選擇不開槍", "success");
+                                }
+                            }
+
+                            // 情侶殉情規則
+                            if (this.cupid_couple.includes(dead)) {
+                                const lover = this.cupid_couple[0] === dead ? this.cupid_couple[1] : this.cupid_couple[0];
+                                this.players[lover].alive = false;
+                                this.players[lover].skill_lock = true;
+                                this.log(`💔 情侶規則：${lover}號殉情死亡 + 技能永久封印！`);
+                            }
+
+                            // 狼王/白狼王/黑狼王 技能嚴格區分
+                            if (dead_role === "狼王") {
+                                this.log(`🐺 狼王規則：死亡即可帶人【無限制】，被刀/被投/自爆皆可發動！`);
+                                const bite = await this.waitForInput();
+                                const biteTar = parseInt(bite);
+                                if (bite !=="0" && alive_players.includes(biteTar)) {
+                                    this.players[biteTar].alive = false;
+                                    this.log(`✅ 狼王咬殺 ${bite}號玩家！`, "success");
+                                } else {
+                                    this.log("✅ 狼王選擇不帶人", "success");
+                                }
+                            }
+
+                            if (dead_role === "白狼王") {
+                                this.log(`🐺 白狼王規則：僅自爆死亡才能帶人，其他死亡無法發動技能！`);
+                            }
+
+                            if (dead_role === "黑狼王" && !this.players[dead].skill_lock) {
+                                this.log(`🐺 黑狼王規則：被刀/被投死亡可帶人，自爆絕對不能發動！`);
+                                const bite = await this.waitForInput();
+                                const biteTar = parseInt(bite);
+                                if (bite !=="0" && alive_players.includes(biteTar)) {
+                                    this.players[biteTar].alive = false;
+                                    this.log(`✅ 黑狼王咬殺 ${bite}號玩家！`, "success");
+                                } else {
+                                    this.log("✅ 黑狼王選擇不帶人", "success");
+                                }
+                            }
+
+                            // 狼美人殉情規則
+                            if (dead_role === "狼美人") {
+                                this.log(`${dead}號狼美人死亡！請輸入被魅惑的玩家編號，不帶輸0：`);
+                                const charm = await this.waitForInput();
+                                const charmTar = parseInt(charm);
+                                if (charm !=="0" && alive_players.includes(charmTar)) {
+                                    this.players[charmTar].alive = false;
+                                    this.players[charmTar].skill_lock = true;
+                                    this.log(`💔 ${charm}號被魅惑玩家殉情死亡+技能封印！`);
+                                } else {
+                                    this.log("✅ 狼美人選擇不帶人", "success");
+                                }
+                            }
+                        }
+                    }
+
+                    // 攝夢人規則：攝夢人死則催眠目標殉情
+                    if (dreamer_dead && dream_target !==-1 && this.players[dream_target].alive) {
+                        this.players[dream_target].alive = false;
+                        this.players[dream_target].skill_lock = true;
+                        this.log(`💤 攝夢人規則：攝夢人死亡 → ${dream_target}號催眠目標殉情+技能封印！`);
+                    }
+                } else {
+                    this.log("→ 平安夜，無人死亡");
+                }
+
+                // 魔術師交換復原
+                if (this.magician_swap_pair.length) {
+                    const [s1, s2] = this.magician_swap_pair;
+                    [this.players[s1].role, this.players[s2].role] = [this.players[s2].role, this.players[s1].role];
+                    this.log(`\n🪄 魔術師規則：天亮後 ${s1}號與{s2}號身份技能復原！`);
+                    this.magician_swap_pair = [];
+                }
+
+                this.check_win_condition();
+                await this.sleep(2000);
+            }
+
+            // ========== ✅ 白天公投階段 ✅ ==========
+            async day_vote() {
+                if (this.game_over) return;
+                this.log(`\n======= 第${this.day}天 · 白天 =======`);
+                const alive_players = this.get_alive_players();
+                const alive_wolfs = this.get_alive_wolfs();
+                const vote_records = {};
+                alive_players.forEach(p => vote_records[p] = 0);
+                let explode_trigger = false;
+                let explode_wolf_role = "";
+
+                // 騎士決鬥環節
+                const knight = Object.keys(this.players).map(Number).filter(p => this.players[p].role === "騎士" && this.players[p].alive && !this.players[p].skill_lock);
+                if (knight.length) {
+                    this.log(`\n⚔️  ${knight[0]}號騎士是否發動決鬥？發動輸1，不發動輸0：`);
+                    const duel = await this.waitForInput();
+                    if (duel === "1") {
+                        this.log("請選擇決鬥目標編號，輸0跳過：");
+                        const tar = parseInt(await this.waitForInput());
+                        if (tar !==0) {
+                            const tar_team = this.getRoleTeam(this.players[tar].role);
+                            if (tar_team === "狼人陣營") {
+                                this.players[tar].alive = false;
+                                this.log(`✅ 決鬥成功！${tar}號狼人死亡，即將進入黑夜！`, "success");
+                                this.check_win_condition();
+                                await this.sleep(2000);
+                                return;
+                            } else {
+                                this.players[knight[0]].alive = false;
+                                this.log(`❌ 決鬥失敗！騎士死亡，討論繼續`, "danger");
+                            }
+                        } else {
+                            this.log("✅ 騎士選擇跳過決鬥技能", "success");
+                        }
+                    }
+                }
+
+                // 投票階段 - 輸0觸發自爆
+                if (alive_players.length) {
+                    this.log(`\n🗳️  公投開始！存活玩家：${alive_players}`);
+                    this.log(`【核心規則】投票輸0 → 立即詢問狼人自爆，有自爆強制入夜，無自爆繼續投票！`);
+                    for (const voter of alive_players) {
+                        if (!this.players[voter].can_vote || explode_trigger) break;
+                        while (true) {
+                            this.log(`${voter}號(${this.players[voter]['role']})請投票放逐：`);
+                            const input = await this.waitForInput();
+                            const vote = parseInt(input);
+                            if (vote ===0) {
+                                this.log("\n⚠️  偵測到投票輸0，立即觸發狼人自爆詢問！", "warn");
+                                this.log("是否有狼人要自爆？ → 1=有自爆  0=無自爆：");
+                                const wolf_explode_ans = await this.waitForInput();
+                                if (wolf_explode_ans === "1") {
+                                    explode_trigger = true;
+                                    this.log(`請選擇要自爆的狼人編號 (存活狼人：${alive_wolfs})：`);
+                                    while (true) {
+                                        const wolf_exp_id = parseInt(await this.waitForInput());
+                                        if (alive_wolfs.includes(wolf_exp_id)) {
+                                            this.players[wolf_exp_id].alive = false;
+                                            explode_wolf_role = this.players[wolf_exp_id].role;
+                                            this.log(`✅ ${wolf_exp_id}號狼人(${explode_wolf_role})自爆成功！`, "success");
+
+                                            // 白狼王規則
+                                            if (explode_wolf_role === "白狼王") {
+                                                this.log(`✅ 白狼王規則：自爆成功！發動帶人技能！`);
+                                                const bite_tar = await this.waitForInput();
+                                                const bt = parseInt(bite_tar);
+                                                if (bite_tar !=="0" && alive_players.includes(bt)) {
+                                                    this.players[bt].alive = false;
+                                                    this.log(`✅ 白狼王咬死 ${bite_tar}號玩家！`, "success");
+                                                }
+                                            }
+
+                                            // 狼王規則
+                                            if (explode_wolf_role === "狼王") {
+                                                this.log(`✅ 狼王規則：自爆屬於死亡，可發動帶人技能！`);
+                                                const bite_tar = await this.waitForInput();
+                                                const bt = parseInt(bite_tar);
+                                                if (bite_tar !=="0" && alive_players.includes(bt)) {
+                                                    this.players[bt].alive = false;
+                                                    this.log(`✅ 狼王咬死 ${bite_tar}號玩家！`, "success");
+                                                }
+                                            }
+
+                                            // 黑狼王規則
+                                            if (explode_wolf_role === "黑狼王") {
+                                                this.log(`❌ 黑狼王規則：自爆死亡，無法發動任何帶人技能！`, "danger");
+                                            }
+
+                                            // 血月使者規則
+                                            if (explode_wolf_role === "血月使者") {
+                                                this.log(`✅ 血月使者自爆！當晚所有好人技能被封印！`, "success");
+                                            }
+
+                                            this.log("✅ 強制結束白天，立即進入黑夜！");
+                                            break;
+                                        }
+                                    }
+                                    break;
+                                } else {
+                                    this.log("✅ 無狼人自爆，繼續進行公投投票！", "success");
+                                    continue;
+                                }
+                            } else if (alive_players.includes(vote)) {
+                                vote_records[vote] +=1;
+                                this.log(`✅ ${voter}號投票給 ${vote}號`, "success");
+                                break;
+                            } else {
+                                this.log("輸入錯誤！請選擇存活玩家編號，輸0觸發自爆詢問！", "danger");
+                            }
+                        }
+                    }
+                }
+
+                // 有自爆 → 強制入夜
+                if (explode_trigger) {
+                    this.check_win_condition();
+                    await this.sleep(2000);
+                    return;
+                }
+
+                // 統計投票結果
+                if (alive_players.length && Object.keys(vote_records).length) {
+                    const max_vote = Math.max(...Object.values(vote_records));
+                    const vote_target = Object.keys(vote_records).filter(p => vote_records[p] === max_vote).map(Number);
+                    if (vote_target.length ===1) {
+                        const vt = vote_target[0];
+                        this.grave_last_vote_role = this.getRoleTeam(this.players[vt].role);
+                        const vt_role = this.players[vt].role;
+
+                        // 白痴規則
+                        if (vt_role === "白痴") {
+                            this.players[vt].can_vote = false;
+                            this.log(`🤍 ${vt}號白痴翻牌不死，失去投票權！`);
+                        } else {
+                            // 血月使者規則
+                            if (vt_role === "血月使者" && alive_wolfs.length ===1) {
+                                this.log(`🌙 血月使者規則：最後狼人被投，翻牌存活至下一個白天！`);
+                            } else {
+                                this.players[vt].alive = false;
+                                const team_tag = this.good_guys.includes(vt) ? "🟢好人" : "🔴狼人";
+                                this.log(`✅ ${vt}號被公投出局！${team_tag}【${vt_role}】`, "success");
+
+                                // 獵人被投開槍
+                                if (vt_role === "獵人" && !this.players[vt].skill_lock) {
+                                    this.log(`${vt}號獵人被投！開槍輸入目標編號，不開輸0：`);
+                                    const shoot = await this.waitForInput();
+                                    const st = parseInt(shoot);
+                                    if (shoot !=="0" && alive_players.includes(st)) {
+                                        this.players[st].alive = false;
+                                        this.log(`✅ 獵人開槍帶走 ${shoot}號！`, "success");
+                                    } else {
+                                        this.log("✅ 獵人選擇不開槍", "success");
+                                    }
+                                }
+                            }
+                        }
+                    } else {
+                        this.log(`🤝 投票平手！${vote_target}號PK，無人出局`);
+                    }
+                }
+
+                this.check_win_condition();
+                await this.sleep(2000);
+            }
+
+            // ========== ✅ 勝利條件 ==========
+            check_win_condition() {
+                const alive_wolfs = this.get_alive_wolfs();
+                const alive_good = this.get_alive_good();
+
+                if (alive_wolfs.length === 0) {
+                    this.game_over = true;
+                    this.winner = "好人陣營";
+                    this.log(`\n🎉 遊戲結束！獲勝陣營：🟢${this.winner} 🎉`, "success");
+                    this.log("✅ 所有狼人已被消滅，好人陣營屠狼獲勝！", "success");
+                } else if (alive_good.length === 0) {
+                    this.game_over = true;
+                    this.winner = "狼人陣營";
+                    this.log(`\n🎉 遊戲結束！獲勝陣營：🔴${this.winner} 🎉`, "wolf");
+                    this.log("✅ 所有好人已被屠滅，狼人陣營屠城獲勝！", "wolf");
+                }
+            }
+
+            // ========== 顯示所有玩家真實身分 ==========
+            show_all_roles() {
+                this.log("\n======= 📜 本局所有玩家真實身分【陣營清晰版】 =======");
+                for (let p in this.players) {
+                    const pid = parseInt(p);
+                    const status = this.players[pid].alive ? "✅存活" : "❌死亡";
+                    const vote = this.players[pid].can_vote ? "🗳️可投票" : "❌無投票權";
+                    const lock = this.players[pid].skill_lock ? "🔒技能封印" : "✅技能可用";
+                    const team_tag = this.good_guys.includes(pid) ? "🟢好人" : "🔴狼人";
+                    this.log(`${pid}號：${team_tag}【${this.players[pid].role}】 ${status} ${vote} ${lock}`);
+                }
+            }
+
+            // 延遲函數
+            sleep(ms) {
+                return new Promise(resolve => setTimeout(resolve, ms));
+            }
+
+            // ========== ✅ 完整遊戲主循環 ==========
+            async start_game() {
+                await this.manual_role_setup();
+                while (true) {
+                    await this.init_game();
+                    while (!this.game_over) {
+                        await this.night_action();
+                        if (this.game_over) break;
+                        await this.day_vote();
+                        this.day +=1;
+                    }
+                    this.show_all_roles();
+                    this.log("\n🎮 是否再來一次？輸入【再來一次】重開遊戲，輸入其他內容結束：");
+                    const restart = await this.waitForInput();
+                    if (restart !== "再來一次") {
+                        this.log("\n👋 謝謝玩狼人殺遊戲！下次再見～");
+                        break;
+                    } else {
+                        this.log("\n=====================================");
+                        this.log("🎮 準備重新開局！可手動分配角色！");
+                        this.log("=====================================");
+                        await this.sleep(2000);
+                    }
+                }
+            }
+        }
+
+        // 啟動遊戲
+        const game = new WerewolfGame();
+        game.start_game();
+    </script>
+</body>
+</html>
