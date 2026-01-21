@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>狼人殺遊戲使用說明 | Werewolf Game Manual</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Microsoft JhengHei', 'Arial', sans-serif;
+        }
+        body {
+            background-color: #ffffff;
+            color: #000000;
+            line-height: 1.8;
+        }
+        .header {
+            background-color: #000000;
+            color: #ffffff;
+            padding: 20px 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: relative;
+        }
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            text-align: center;
+        }
+        .header h1 {
+            font-size: 28px;
+            font-weight: 600;
+            color: #ffffff;
+            border: none;
+            padding: 0;
+            margin: 0;
+        }
+        /* 語言切換按鈕 - 右上角 */
+        .lang-switch {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 10px;
+        }
+        .lang-btn {
+            padding: 8px 20px;
+            border: none;
+            border-radius: 4px;
+            background-color: #000000;
+            color: #ffffff;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            border: 1px solid #ffffff;
+        }
+        .lang-btn.active {
+            background-color: #ffffff;
+            color: #000000;
+            font-weight: 600;
+        }
+        .lang-btn:hover {
+            background-color: #f0f0f0;
+            color: #000000;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 30px 20px;
+        }
+        /* 內容區域 */
+        .lang-content {
+            display: none;
+            background-color: #ffffff;
+            border-radius: 8px;
+            padding: 40px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            border: 1px solid #e0e0e0;
+        }
+        .lang-content.active {
+            display: block;
+        }
+        /* 標題樣式 */
+        h1 {
+            color: #000000;
+            margin: 30px 0 20px;
+            font-size: 24px;
+            border-bottom: 2px solid #000000;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #000000;
+            margin: 25px 0 15px;
+            font-size: 20px;
+            padding-left: 10px;
+            border-left: 4px solid #000000;
+        }
+        h3 {
+            color: #000000;
+            margin: 20px 0 10px;
+            font-size: 18px;
+        }
+        /* 列表樣式 */
+        ul, ol {
+            margin-left: 30px;
+            margin-bottom: 20px;
+        }
+        li {
+            margin-bottom: 8px;
+        }
+        /* 特殊標記 - 紅綠配色 */
+        .faction-good {
+            color: #008000; /* 綠色 - 好人陣營 */
+            font-weight: 600;
+        }
+        .faction-wolf {
+            color: #ff0000; /* 紅色 - 狼人陣營 */
+            font-weight: 600;
+        }
+        .highlight {
+            background-color: #f8f8f8;
+            padding: 2px 6px;
+            border-radius: 4px;
+            border: 1px solid #e0e0e0;
+        }
+        code {
+            background-color: #f8f8f8;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            color: #ff0000; /* 紅色 */
+            border: 1px solid #e0e0e0;
+        }
+        /* FAQ樣式 */
+        .faq-item {
+            margin: 15px 0;
+        }
+        .faq-q {
+            font-weight: 600;
+            color: #000000;
+        }
+        /* 響應式設計 */
+        @media (max-width: 768px) {
+            .lang-switch {
+                position: relative;
+                top: 0;
+                right: 0;
+                justify-content: center;
+                margin-bottom: 15px;
+            }
+            .header-content {
+                padding-top: 15px;
+            }
+            .lang-content {
+                padding: 20px;
+            }
+            .header h1 {
+                font-size: 24px;
+            }
+            h1 {
+                font-size: 22px;
+            }
+            h2 {
+                font-size: 18px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <!-- 語言切換按鈕 - 右上角 -->
+        <div class="lang-switch">
+            <button class="lang-btn active" onclick="switchLang('zh')">繁體中文</button>
+            <button class="lang-btn" onclick="switchLang('en')">English</button>
+        </div>
+        <!-- 頂部標題區 -->
+        <div class="header-content">
+            <h1 id="main-title">狼人殺遊戲使用說明（繁體中文版）</h1>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- 繁體中文內容 -->
+        <div id="zh-content" class="lang-content active">
+            <p>這份說明將引導你使用本程式碼運行的狼人殺遊戲，包含遊戲啟動、角色設定、遊戲流程與核心操作規則，適用於新手與有經驗的玩家。</p>
+
+            <h1>一、遊戲基本資訊</h1>
+            <h2>1.1 遊戲特色</h2>
+            <ul>
+                <li>支援25 種狼人殺角色（包含<span class="faction-good">好人</span> / <span class="faction-wolf">狼人</span>陣營，如預言家、女巫、狼王、石像鬼等）</li>
+                <li>雙角色分配模式：手動指定角色 / 電腦自動隨機分配角色</li>
+                <li>完整日夜循環機制，還原真實狼人殺遊戲流程</li>
+                <li>支援按鈕點選 + 數字手動輸入雙操作方式，操作直觀</li>
+                <li>繁體中文介面，角色技能與規則完整提示</li>
+            </ul>
+
+            <h2>1.2 執行方式</h2>
+            <ol>
+                <li>將程式碼複製到文字編輯器（如記事本、VS Code），儲存為副檔名 .html 的檔案（例如 <code>狼人殺遊戲.html</code>）。</li>
+                <li>用任意瀏覽器（Chrome、Edge、Firefox 等）開啟該檔案，即可啟動遊戲。</li>
+            </ol>
+
+            <h1>二、遊戲操作流程</h1>
+            <h2>2.1 第一步：選擇角色分配模式</h2>
+            <p>遊戲啟動後，首先進入「角色設定模式選擇」階段：</p>
+            <ul>
+                <li>點選【1】：手動指定角色模式（固定角色清單順序，第 N 個角色對應 N 號玩家）</li>
+                <li>點選【2】：電腦自動分配角色模式（先設定角色清單，系統隨機洗牌分配給玩家）</li>
+            </ul>
+
+            <h2>2.2 第二步：設定遊戲基礎資訊</h2>
+            <ol>
+                <li>設定玩家人數：
+                    <ul>
+                        <li>畫面會顯示數字按鈕（1~20），點選本局參與的玩家總人數（建議至少 4 人）。</li>
+                        <li>也可直接在數字輸入框輸入人數後按 Enter 確認。</li>
+                    </ul>
+                </li>
+                <li>設定角色清單：
+                    <ul>
+                        <li>畫面會列出所有 25 種角色（標註🟢好人 /🔴狼人陣營 + 技能說明）。</li>
+                        <li>依序為「角色池第 1 位～第 N 位」選擇角色（N = 玩家人數），選擇後系統會確認角色池清單。</li>
+                    </ul>
+                </li>
+            </ol>
+
+            <h2>2.3 第三步：角色分配（自動 / 手動）</h2>
+            <h3>模式 1：電腦自動分配</h3>
+            <ul>
+                <li>系統會自動洗牌你設定的角色清單，隨機分配給所有玩家，並顯示「X 號玩家 → 角色（陣營）」。</li>
+                <li>分配完成後自動顯示好人 / 狼人陣營的玩家編號。</li>
+            </ul>
+            <h3>模式 2：手動分配角色</h3>
+            <ul>
+                <li>系統會顯示剩餘待分配的角色，你需要逐個為「1 號～N 號玩家」選擇角色（只能從角色池選取）。</li>
+                <li>分配完成後顯示好人 / 狼人陣營的玩家編號。</li>
+            </ul>
+
+            <h2>2.4 第四步：進入遊戲主流程（日夜循環）</h2>
+            <p>遊戲核心為「夜晚行動 → 白天投票 → 勝利判定」的循環，直到某一方陣營獲勝。</p>
+            
+            <h3>🔹 夜晚階段（角色技能執行）</h3>
+            <p>系統會依序喚醒各角色執行技能，操作規則如下：</p>
+            <ol>
+                <li>狼人陣營：選擇刀殺目標（點【0】跳過刀人，平安夜），惡靈騎士禁止自刀。</li>
+                <li>守衛：選擇守護目標（不可連續兩晚守同一人，點【0】跳過）。</li>
+                <li>攝夢人：必須選擇催眠目標（無跳過選項，連續兩晚催眠同一人則目標死亡）。</li>
+                <li>預言家 / 通靈師：選擇查驗目標（點【0】跳過，預言家查陣營、通靈師查真實身份）。</li>
+                <li>女巫：可選擇「救被刀玩家（解藥）」「毒殺玩家（毒藥）」「跳過（0）」，兩藥不可同夜使用。</li>
+                <li>獵魔人：第二晚開啟狩獵能力，獵狼人則目標死，獵好人則自身死（點【0】跳過）。</li>
+                <li>石像鬼：單獨睜眼查驗身份，若所有普通狼人滅絕可單獨刀人。</li>
+                <li>愛神：必須選擇 2 名玩家結為情侶（一方死亡則另一方殉情）。</li>
+                <li>其他角色：狼弟、魔術師、守墓人等依提示執行對應技能。</li>
+            </ol>
+            <p>夜晚結束：系統公佈昨夜死亡玩家，觸發獵人開槍、情侶殉情、狼王帶人等額外規則。</p>
+
+            <h3>🔹 白天階段（辯論 + 投票）</h3>
+            <ol>
+                <li>騎士決鬥：若有存活騎士，可選擇是否發動決鬥（決鬥狼人則狼人死亡並入夜，決鬥好人則騎士死亡）。</li>
+                <li>公投投票：
+                    <ul>
+                        <li>存活玩家依序投票放逐目標，可點選玩家編號或輸入數字後按 Enter。</li>
+                        <li>點【0】會觸發「狼人自爆詢問」：
+                            <ul>
+                                <li>點【1】：選擇自爆的狼人，自爆後強制結束白天進入黑夜（白狼王 / 狼王自爆可帶人）。</li>
+                                <li>點【0】：無狼人自爆，繼續投票。</li>
+                            </ul>
+                        </li>
+                    </ul>
+                </li>
+                <li>投票結果：
+                    <ul>
+                        <li>最高票玩家出局（白痴被投翻牌不死，僅失去投票權）。</li>
+                        <li>投票平手則無人出局，進入下一輪日夜循環。</li>
+                    </ul>
+                </li>
+            </ol>
+
+            <h2>2.5 第五步：勝利判定與重開遊戲</h2>
+            <ol>
+                <li>勝利條件：
+                    <ul>
+                        <li>🟢<span class="faction-good">好人陣營</span>：消滅所有狼人獲勝。</li>
+                        <li>🔴<span class="faction-wolf">狼人陣營</span>：屠滅所有好人獲勝。</li>
+                    </ul>
+                </li>
+                <li>遊戲結束：
+                    <ul>
+                        <li>系統會顯示所有玩家的真實身份、存活狀態、投票權與技能狀態。</li>
+                        <li>可選擇【1】重開遊戲（保留角色池，可重新分配角色），或【0】結束遊戲。</li>
+                    </ul>
+                </li>
+            </ol>
+
+            <h1>三、核心操作技巧</h1>
+            <h2>3.1 操作方式</h2>
+            <ul>
+                <li>按鈕點選：直接點畫面上的數字 / 選項按鈕即可確認操作。</li>
+                <li>數字輸入：在頂部的數字輸入框輸入對應數字（如玩家編號、選項編號），按 Enter 快速確認，適合熟練玩家。</li>
+            </ul>
+
+            <h2>3.2 關鍵規則提醒</h2>
+            <ol>
+                <li>所有角色技能點【0】皆可跳過（攝夢人、愛神除外，強制執行）。</li>
+                <li>女巫第一晚不能自救，解藥與守衛守護同時作用於同一目標時，目標依然死亡。</li>
+                <li>獵魔人免疫女巫毒藥，狩獵好人會自身死亡。</li>
+                <li>狼人自爆會強制結束白天，白狼王僅自爆可帶人，黑狼王自爆不可帶人。</li>
+            </ol>
+
+            <h1>四、常見問題</h1>
+            <div class="faq-item">
+                <p class="faq-q">Q1：遊戲卡頓或無回應？</p>
+                <p>A1：刷新瀏覽器頁面重新啟動遊戲即可，遊戲所有操作皆在本地執行，無網路依賴。</p>
+            </div>
+            <div class="faq-item">
+                <p class="faq-q">Q2：角色技能忘記了怎麼辦？</p>
+                <p>A2：遊戲啟動後的角色設定階段，會完整顯示所有角色的技能說明，可在此階段確認。</p>
+            </div>
+            <div class="faq-item">
+                <p class="faq-q">Q3：能否自定義角色數量或規則？</p>
+                <p>A3：可修改程式碼中 ROLES 物件的內容，新增 / 刪除角色，或調整角色技能邏輯（需具備基礎 HTML/JS 知識）。</p>
+            </div>
+
+            <h1>總結</h1>
+            <ol>
+                <li>本遊戲透過瀏覽器執行，支援手動 / 自動兩種角色分配模式，操作包含按鈕點選與數字輸入。</li>
+                <li>遊戲核心流程為「夜晚角色技能執行 → 白天投票放逐 → 勝利判定」，還原完整狼人殺規則。</li>
+                <li>所有角色技能與陣營規則皆有明確提示，新手可依畫面引導逐步操作，熟練後可使用數字輸入提升效率。</li>
+            </ol>
+            <p style="margin-top: 20px; font-weight: 500;">遵循以上步驟，即可順利體驗這款包含 25 種角色的完整版狼人殺遊戲！</p>
+        </div>
+
+        <!-- 英文內容 -->
+        <div id="en-content" class="lang-content">
+            <p>This manual will guide you through running the Werewolf game using the provided code, including game launch, role setup, gameplay flow, and core operation rules. It is suitable for both new and experienced players.</p>
+
+            <h1>I. Basic Game Information</h1>
+            <h2>1.1 Game Features</h2>
+            <ul>
+                <li>Supports 25 Werewolf game roles (including <span class="faction-good">Good</span> and <span class="faction-wolf">Werewolf</span> factions, such as Seer, Witch, Werewolf King, Gargoyle, etc.)</li>
+                <li>Dual role assignment modes: Manual Role Assignment / Automatic Random Assignment by the System</li>
+                <li>Complete day-night cycle mechanism to restore the authentic Werewolf gameplay</li>
+                <li>Dual operation methods: Button click + Manual number input, with intuitive operation</li>
+                <li>Traditional Chinese interface with full prompts for role skills and rules</li>
+            </ul>
+
+            <h2>1.2 Execution Method</h2>
+            <ol>
+                <li>Copy the code into a text editor (e.g., Notepad, VS Code) and save it as an HTML file (e.g., <code>WerewolfGame.html</code>).</li>
+                <li>Open the file with any browser (Chrome, Edge, Firefox, etc.) to launch the game.</li>
+            </ol>
+
+            <h1>II. Game Operation Flow</h1>
+            <h2>2.1 Step 1: Select Role Assignment Mode</h2>
+            <p>After launching the game, you will first enter the "Role Assignment Mode Selection" phase:</p>
+            <ul>
+                <li>Click [1]: Manual Role Assignment Mode (fixed role list order; the Nth role corresponds to Player N)</li>
+                <li>Click [2]: Automatic System Assignment Mode (set the role list first, then the system shuffles and randomly assigns roles to players)</li>
+            </ul>
+
+            <h2>2.2 Step 2: Set Basic Game Information</h2>
+            <ol>
+                <li>Set the number of players:
+                    <ul>
+                        <li>Number buttons (1~20) will be displayed on the screen. Click the total number of players for the game (at least 4 players are recommended).</li>
+                        <li>You can also directly enter the number in the number input box and press Enter to confirm.</li>
+                    </ul>
+                </li>
+                <li>Set the role pool:
+                    <ul>
+                        <li>All 25 roles will be listed on the screen (marked with 🟢Good Faction / 🔴Werewolf Faction + skill descriptions).</li>
+                        <li>Select roles for "Role Pool Slot 1 to Slot N" in sequence (N = number of players). The system will confirm the role pool list after selection.</li>
+                    </ul>
+                </li>
+            </ol>
+
+            <h2>2.3 Step 3: Role Assignment (Automatic / Manual)</h2>
+            <h3>Mode 1: Automatic System Assignment</h3>
+            <ul>
+                <li>The system will automatically shuffle the set role pool, randomly assign roles to all players, and display "Player X → Role (Faction)".</li>
+                <li>After assignment, the player numbers of the Good and Werewolf factions will be displayed automatically.</li>
+            </ul>
+            <h3>Mode 2: Manual Role Assignment</h3>
+            <ul>
+                <li>The system will show the remaining roles to be assigned. You need to select roles for "Player 1 to Player N" one by one (only from the role pool).</li>
+                <li>After assignment, the player numbers of the Good and Werewolf factions will be displayed automatically.</li>
+            </ul>
+
+            <h2>2.4 Step 4: Enter the Core Gameplay (Day-Night Cycle)</h2>
+            <p>The core of the game is a cycle of "Night Action → Day Vote → Victory Judgment" until one faction wins.</p>
+            
+            <h3>🔹 Night Phase (Role Skill Execution)</h3>
+            <p>The system will wake up each role in sequence to execute their skills. The operation rules are as follows:</p>
+            <ol>
+                <li>Werewolf Faction: Choose a target to kill (click [0] to skip killing, resulting in a peaceful night). The Evil Knight cannot kill themselves.</li>
+                <li>Guard: Choose a target to protect (cannot protect the same target two nights in a row; click [0] to skip).</li>
+                <li>Dreamer: Must choose a target to hypnotize (no skip option). Hypnotizing the same target two nights in a row will kill them.</li>
+                <li>Seer / Medium: Choose a target to inspect (click [0] to skip). The Seer checks the faction; the Medium checks the real identity.</li>
+                <li>Witch: Can choose to "save the killed player (Antidote)", "poison a player (Poison)", or "skip (0)". Cannot use both potions in the same night.</li>
+                <li>Demon Hunter: Unlocks hunting ability from the second night. Hunting a Werewolf kills the target; hunting a Good player kills themselves (click [0] to skip).</li>
+                <li>Gargoyle: Wakes up alone to inspect identities. Can kill alone if all regular Werewolves are eliminated.</li>
+                <li>Cupid: Must choose 2 players to be lovers (if one dies, the other dies of love).</li>
+                <li>Other Roles: Execute corresponding skills according to prompts (e.g., Werewolf Brother, Magician, Gravekeeper).</li>
+            </ol>
+            <p>End of Night: The system announces the players who died last night, triggering additional rules such as the Hunter shooting, lovers dying of love, and the Werewolf King taking a player down.</p>
+
+            <h3>🔹 Day Phase (Debate + Voting)</h3>
+            <ol>
+                <li>Knight Duel: If there is a surviving Knight, they can choose to initiate a duel. Dueling a Werewolf kills the Werewolf and ends the day; dueling a Good player kills the Knight.</li>
+                <li>Public Vote:
+                    <ul>
+                        <li>Surviving players vote in sequence to eliminate a target. You can click the player number or enter the number and press Enter.</li>
+                        <li>Clicking [0] triggers a "Werewolf Self-Explosion Inquiry":
+                            <ul>
+                                <li>Click [1]: Select the Werewolf to self-explode. Self-explosion forces the day to end and enters the night (White Werewolf King / Werewolf King can take a player down when self-exploding).</li>
+                                <li>Click [0]: No Werewolf self-explodes; continue voting.</li>
+                            </ul>
+                        </li>
+                    </ul>
+                </li>
+                <li>Voting Result:
+                    <ul>
+                        <li>The player with the most votes is eliminated (the Fool does not die when eliminated by vote, only loses voting rights).</li>
+                        <li>A tie results in no elimination, and the game proceeds to the next day-night cycle.</li>
+                    </ul>
+                </li>
+            </ol>
+
+            <h2>2.5 Step 5: Victory Judgment and Restart</h2>
+            <ol>
+                <li>Victory Conditions:
+                    <ul>
+                        <li>🟢 <span class="faction-good">Good Faction</span>: Win by eliminating all Werewolves.</li>
+                        <li>🔴 <span class="faction-wolf">Werewolf Faction</span>: Win by eliminating all Good players.</li>
+                    </ul>
+                </li>
+                <li>End of Game:
+                    <ul>
+                        <li>The system will display all players' real identities, survival status, voting rights, and skill status.</li>
+                        <li>Choose [1] to restart the game (retains the role pool, can reassign roles) or [0] to end the game.</li>
+                    </ul>
+                </li>
+            </ol>
+
+            <h1>III. Core Operation Tips</h1>
+            <h2>3.1 Operation Methods</h2>
+            <ul>
+                <li>Button Click: Directly click the number/option buttons on the screen to confirm operations.</li>
+                <li>Manual Number Input: Enter the corresponding number (e.g., player number, option number) in the top input box and press Enter to confirm quickly. Suitable for experienced players.</li>
+            </ul>
+
+            <h2>3.2 Key Rule Reminders</h2>
+            <ol>
+                <li>Clicking [0] skips skill use for all roles (except the Dreamer and Cupid, who must execute their skills).</li>
+                <li>The Witch cannot save herself on the first night. If the Witch's Antidote and the Guard's Protection target the same player, the target still dies.</li>
+                <li>The Demon Hunter is immune to the Witch's Poison. Hunting a Good player results in self-death.</li>
+                <li>Werewolf self-explosion forces the day to end. The White Werewolf King can only take a player down when self-exploding; the Black Werewolf King cannot take a player down when self-exploding.</li>
+            </ol>
+
+            <h1>IV. Frequently Asked Questions (FAQs)</h1>
+            <div class="faq-item">
+                <p class="faq-q">Q1: The game freezes or becomes unresponsive?</p>
+                <p>A1: Refresh the browser page to restart the game. All game operations are performed locally without network dependence.</p>
+            </div>
+            <div class="faq-item">
+                <p class="faq-q">Q2: Forgot a role's skill?</p>
+                <p>A2: During the role setup phase after launching the game, full skill descriptions for all roles are displayed. You can check them at this stage.</p>
+            </div>
+            <div class="faq-item">
+                <p class="faq-q">Q3: Can I customize the number of roles or rules?</p>
+                <p>A3: You can modify the content of the ROLES object in the code to add/delete roles or adjust role skill logic (basic HTML/JS knowledge required).</p>
+            </div>
+
+            <h1>Summary</h1>
+            <ol>
+                <li>This game runs in a browser, supporting both manual and automatic role assignment modes with button click and number input operations.</li>
+                <li>The core gameplay cycle is "Night Role Skill Execution → Day Voting Elimination → Victory Judgment", restoring the complete Werewolf rules.</li>
+                <li>All role skills and faction rules have clear prompts. New players can follow on-screen guidance to operate step by step, while experienced players can use number input to improve efficiency.</li>
+            </ol>
+            <p style="margin-top: 20px; font-weight: 500;">Follow the above steps to smoothly experience this full-version Werewolf game with 25 roles!</p>
+        </div>
+    </div>
+
+    <script>
+        // 語言切換函數
+        function switchLang(lang) {
+            // 移除所有按鈕的active類
+            document.querySelectorAll('.lang-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            // 給當前點擊的按鈕添加active類
+            event.target.classList.add('active');
+            
+            // 切換頂部標題文字
+            const mainTitle = document.getElementById('main-title');
+            if (lang === 'zh') {
+                mainTitle.textContent = '狼人殺遊戲使用說明（繁體中文版）';
+            } else {
+                mainTitle.textContent = 'Werewolf Game User Manual (English Version)';
+            }
+            
+            // 隱藏所有內容
+            document.querySelectorAll('.lang-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            // 顯示對應語言的內容
+            document.getElementById(lang + '-content').classList.add('active');
+        }
+    </script>
+</body>
+</html>
